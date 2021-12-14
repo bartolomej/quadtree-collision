@@ -15,7 +15,7 @@ class App extends AbstractApp {
     this.canvas.addEventListener('mousemove', this._onMouseMove.bind(this));
   }
 
-  _initCircles(n = 10) {
+  _initCircles(n = 5) {
     for (let i = 0; i < n; i++) {
       const {width, height} = this.canvas;
       const position = new Vector(Math.random() * width, Math.random() * height);
@@ -42,6 +42,11 @@ class App extends AbstractApp {
     }
   }
 
+  _getCollisionCandidates() {
+    // TODO: calculate candidates using quad tree algorithm
+    return this.circles;
+  }
+
   _onMouseUp() {
     this.mouseDownPosition = null;
   }
@@ -49,16 +54,25 @@ class App extends AbstractApp {
   update () {
     if (this.mouseDownPosition) {
       this._addCircle(this.mouseDownPosition);
-      console.log(this.circles.length)
     }
-    this.circles.forEach(circle => circle.update(this.ctx))
+    this.circles.forEach(circle => circle.update(this.ctx));
+
+    // check for collisions
+    const candidates = this._getCollisionCandidates();
+    candidates.forEach((a) => {
+      candidates.forEach((b) => {
+        if (a.isColliding(b) && a !== b && !a.collision && !b.collision) {
+          a.collision = true;
+          b.collision = true;
+        }
+      })
+    })
   }
 
   render () {
     const {ctx} = this;
     super.render();
-    this.circles.forEach(circle => circle.draw(ctx))
-    ctx.stroke();
+    this.circles.forEach(circle => circle.render(ctx))
   }
 }
 

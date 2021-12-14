@@ -7,6 +7,7 @@ export default class Circle {
     this.position = position;
     this.velocity = velocity;
     this.radius = radius;
+    this.collision = false; // is this circle colliding with any other circles
   }
 
   distanceTo(circle) {
@@ -29,12 +30,18 @@ export default class Circle {
       this.velocity = velocity.mul(new Vector(1, -1))
     }
     this.position = position.add(this.velocity);
+    this.collision = false; // reset collision state
   }
 
-  draw(ctx) {
-    const {radius} = this;
+  render(ctx) {
+    const {radius, collision} = this;
     const {x, y} = this.position;
     ctx.moveTo(x + radius, y);
+    console.log(collision)
+    ctx.strokeStyle = collision ? 'red' : 'black';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
     ctx.arc(x, y, radius, 0, 2 * Math.PI);
+    ctx.stroke();
   }
 }
