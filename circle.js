@@ -16,7 +16,8 @@ export default class Circle {
 
   isColliding(circle) {
     const combinedRadius = this.radius + circle.radius;
-    return this.distanceTo(circle) <= combinedRadius;
+    const isTouching = this.distanceTo(circle) <= combinedRadius;
+    return isTouching && this !== circle && !this.collision && !circle.collision;
   }
 
   update(ctx) {
