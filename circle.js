@@ -36,12 +36,11 @@ export default class Circle {
   render(ctx) {
     const {radius, collision} = this;
     const {x, y} = this.position;
-    ctx.moveTo(x + radius, y);
-    console.log(collision)
     ctx.strokeStyle = collision ? 'red' : 'black';
     ctx.lineWidth = 2;
     ctx.beginPath();
     ctx.arc(x, y, radius, 0, 2 * Math.PI);
+    ctx.closePath();
     ctx.stroke();
   }
 }
