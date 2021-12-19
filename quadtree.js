@@ -13,7 +13,6 @@ export default class QuadTree {
   constructor (bounds, maxNodeCapacity = 2) {
     this.maxNodeCapacity = maxNodeCapacity;
     this.root = new Node(0, bounds);
-    this.root.subdivide();
   }
 
   /**
