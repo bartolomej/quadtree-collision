@@ -17,6 +17,7 @@ class App extends AbstractApp {
     this._initPane();
     this.circles = [];
     this.mouseDownPosition = null;
+    this.drawTree = true;
     this.algorithm = ALGORITHM.QUAD_TREE;
     this.quadTree = new QuadTree(this._getBounds());
     this._initCircles();
@@ -72,6 +73,14 @@ class App extends AbstractApp {
         return this.app.runtime;
       }
 
+      set drawTree (x) {
+        this.app.drawTree = x;
+      }
+
+      get drawTree () {
+        return this.app.drawTree;
+      }
+
     }
 
     this.params = new Params(this);
@@ -80,6 +89,7 @@ class App extends AbstractApp {
     this.params.maxNodeCapacity = 1;
     this.params.maxTreeDepth = 100;
     this.params.runtime = 0;
+    this.params.drawTree = true;
   }
 
   _initPane () {
@@ -111,6 +121,8 @@ class App extends AbstractApp {
       min: 1,
       max: 100
     });
+    paramsFolder.addInput(this.params, 'drawTree');
+
     graphsFolder.addMonitor(this.params, 'nCircles', {
       view: 'graph',
       min: 1,
@@ -221,9 +233,11 @@ class App extends AbstractApp {
   }
 
   render () {
-    const { ctx, circles, quadTree } = this;
+    const { ctx, circles, quadTree, drawTree } = this;
     super.render();
-    quadTree.render(ctx);
+    if (drawTree) {
+      quadTree.render(ctx);
+    }
     circles.forEach(circle => circle.render(ctx))
   }
 }
