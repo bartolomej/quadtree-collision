@@ -14,7 +14,7 @@ export default class Circle {
     return this.position.sub(circle.position).abs();
   }
 
-  isColliding(circle) {
+  intersectsCircle(circle) {
     const combinedRadius = this.radius + circle.radius;
     const isTouching = this.distanceTo(circle) <= combinedRadius;
     return isTouching && this !== circle && !this.collision && !circle.collision;

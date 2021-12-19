@@ -14,7 +14,7 @@ class App extends AbstractApp {
   start () {
     this.circles = [];
     this.mouseDownPosition = null;
-    this.algorithm = ALGORITHM.BRUTE_FORCE;
+    this.algorithm = ALGORITHM.QUAD_TREE;
     this.quadTree = new QuadTree(this._getBounds());
     this._initCircles();
     this.canvas.addEventListener('mousedown', this._onMouseDown.bind(this));
@@ -67,7 +67,7 @@ class App extends AbstractApp {
     const {circles} = this;
     circles.forEach((a) => {
       circles.forEach((b) => {
-        if (a.isColliding(b)) {
+        if (a.intersectsCircle(b)) {
           a.collision = true;
           b.collision = true;
         }
@@ -82,7 +82,7 @@ class App extends AbstractApp {
     circles.forEach(circle => {
       const candidates = quadTree.retrieve(circle);
       candidates.forEach(candidate => {
-        if (candidate.isColliding(circle)) {
+        if (candidate.intersectsCircle(circle)) {
           circle.collision = true;
           candidate.collision = true;
         }

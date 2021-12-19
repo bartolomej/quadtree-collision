@@ -26,6 +26,21 @@ export default class Rectangle {
   }
 
   /**
+   * Returns if a given circle is inside this rectangle.
+   * @param circle {Circle}
+   */
+  isCircleWithinBounds (circle) {
+    const { x0, y0, x1, y1 } = this;
+    const { position, radius } = circle;
+    return (
+      x0 <= position.x - radius &&
+      x1 >= position.x + radius &&
+      y0 <= position.y - radius &&
+      y1 >= position.y + radius
+    )
+  }
+
+  /**
    * Render 2D rectangle on canvas.
    * @param ctx {CanvasRenderingContext2D}
    */
