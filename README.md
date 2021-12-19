@@ -2,9 +2,11 @@
 
 Visualization of quadtree collision detection algorithm.
 
+![](./preview.png)
+
 ## Algorithm
 
-- Rebuild tree at every step - recursively decompose quadrants until certain property is satisfied
+- Rebuild tree at every step 
 - Retrieve a list of collision candidates
 - Calculate if those candidates collide
 - Perform update logic ...

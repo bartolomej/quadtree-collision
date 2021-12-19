@@ -8,10 +8,12 @@ export default class QuadTree {
    * Initialises QuadTree object.
    * @param bounds {Rectangle}
    * @param maxNodeCapacity {number}
+   * @param maxTreeDepth {number}
    * @constructor
    */
-  constructor (bounds, maxNodeCapacity = 1) {
+  constructor (bounds, maxNodeCapacity = 1, maxTreeDepth = Number.POSITIVE_INFINITY) {
     this.maxNodeCapacity = maxNodeCapacity;
+    this.maxTreeDepth = maxTreeDepth;
     this.root = new Node(0, bounds);
   }
 
@@ -20,7 +22,7 @@ export default class QuadTree {
    * @param circles {Circle[]}
    */
   insertAll (circles) {
-    circles.forEach(c => this.root.insert(c, this.maxNodeCapacity))
+    circles.forEach(c => this.root.insert(c, this.maxNodeCapacity, this.maxTreeDepth))
   }
 
   /**
@@ -28,7 +30,7 @@ export default class QuadTree {
    * @param circle {Circle}
    */
   insert (circle) {
-    this.root.insert(circle, this.maxNodeCapacity);
+    this.root.insert(circle, this.maxNodeCapacity, this.maxTreeDepth);
   }
 
   /**
@@ -136,17 +138,18 @@ class Node {
    * it will be split and add all objects to their corresponding nodes.
    * @param circle {Circle}
    * @param maxNodeCapacity {number}
+   * @param maxTreeDepth {number}
    */
-  insert (circle, maxNodeCapacity) {
+  insert (circle, maxNodeCapacity, maxTreeDepth) {
     const childNode = this.getChildNode(circle);
 
     if (childNode) {
-      return childNode.insert(circle, maxNodeCapacity);
+      return childNode.insert(circle, maxNodeCapacity, maxTreeDepth);
     }
 
     this.circles.push(circle);
 
-    if (this.circles.length >= maxNodeCapacity) {
+    if (this.circles.length >= maxNodeCapacity && this.depth < maxTreeDepth) {
       if (this.children.length === 0) {
         this.subdivide();
       }
@@ -154,7 +157,7 @@ class Node {
       this.circles = this.circles.filter(c => {
         const childNode = this.getChildNode(c);
         if (childNode) {
-          childNode.insert(c);
+          childNode.insert(c, maxNodeCapacity, maxTreeDepth);
         }
         return !childNode;
       })

@@ -46,7 +46,7 @@ export default class Rectangle {
    */
   render (ctx) {
     const { x0, y0, x1, y1, width, height } = this;
-    ctx.strokeStyle = 'grey';
+    ctx.strokeStyle = 'rgb(187,188,196)';
     ctx.beginPath();
     ctx.rect(x0, y0, width, height);
     ctx.closePath();
