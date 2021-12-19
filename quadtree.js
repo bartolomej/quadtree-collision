@@ -10,7 +10,7 @@ export default class QuadTree {
    * @param maxNodeCapacity {number}
    * @constructor
    */
-  constructor (bounds, maxNodeCapacity = 2) {
+  constructor (bounds, maxNodeCapacity = 1) {
     this.maxNodeCapacity = maxNodeCapacity;
     this.root = new Node(0, bounds);
   }
@@ -76,6 +76,7 @@ class Node {
    */
   clear () {
     this.children.forEach(node => node.clear());
+    this.circles = [];
     this.children = [];
   }
 
@@ -146,7 +147,9 @@ class Node {
     this.circles.push(circle);
 
     if (this.circles.length >= maxNodeCapacity) {
-      this.subdivide();
+      if (this.children.length === 0) {
+        this.subdivide();
+      }
       // keep the circles that do not belong to any of the child nodes
       this.circles = this.circles.filter(c => {
         const childNode = this.getChildNode(c);
