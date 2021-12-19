@@ -93,6 +93,8 @@ class App extends AbstractApp {
   }
 
   _initPane () {
+    // NOTE: Samo za prikaz in kontroliranje parametrov in grafov se uporablja knjiznica tweakpane/
+    // To knjiznico sem uporabil, zato da sem lahko izrisal nekaj dodatnih grafov, ki bi mi drugace vzeli bistveno vec casa.
     this.pane = new Tweakpane.Pane();
     const paramsFolder = this.pane.addFolder({
       title: "Parameters"
