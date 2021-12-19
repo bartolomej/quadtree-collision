@@ -34,14 +34,19 @@ class App extends AbstractApp {
       }
 
       set nCircles (x) {
-        this.app._initCircles(x);
+        if (x !== this.app.circles?.length) {
+          this.app._initCircles(x);
+        }
+        console.log("set nCircles: ", x);
       }
 
       get nCircles () {
+        console.log("get nCircles: ", this.app.circles.length);
         return this.app.circles.length;
       }
 
       set algorithm (x) {
+        this.app.quadTree.clear();
         this.app.algorithm = x;
       }
 
@@ -220,6 +225,7 @@ class App extends AbstractApp {
   update () {
     if (this.mouseDownPosition) {
       this._addCircle(this.mouseDownPosition);
+      this.pane.refresh();
     }
     this.circles.forEach(circle => circle.update(this.ctx));
 
