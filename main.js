@@ -1,9 +1,9 @@
-import AbstractApp from "./app.js";
+import {BaseApp} from "./base-app.js";
 import {Circle} from "./circle.js";
 import Vector from "./vector.js";
 import {QuadTree} from "./quadtree.js";
 import Rectangle from "./rectangle.js";
-import {BruteforceCollisionDetection, QuadtreeCollisionDetection} from "./collision-detection.js";
+import {BruteforceCollisionDetection, QuadtreeCollisionDetection} from "./collision.js";
 
 
 const collisionDetectionStrategies = {
@@ -16,75 +16,26 @@ const colors = {
     GRAY: '#484848FF'
 }
 
-class App extends AbstractApp {
+class App extends BaseApp {
 
   start () {
-    this.collisionDetectionStrategies = new Map([
-        [collisionDetectionStrategies.QUAD_TREE, new QuadtreeCollisionDetection()],
-        [collisionDetectionStrategies.BRUTE_FORCE, new BruteforceCollisionDetection()],
-    ])
     this.shapes = [];
     this.mouseDownPosition = null;
     this.drawTree = true;
     this.collisionDetectionStrategy = collisionDetectionStrategies.QUAD_TREE;
-    this.quadTree = new QuadTree(this.rootBounds);
-    this._initCircles();
+    this.quadTree = new QuadTree(this.rootBounds, 100, 1);
+    this.collisionDetectionStrategies = new Map([
+        [collisionDetectionStrategies.QUAD_TREE, new QuadtreeCollisionDetection(this.quadTree)],
+        [collisionDetectionStrategies.BRUTE_FORCE, new BruteforceCollisionDetection()],
+    ])
+    this._initCircles(5);
     this.runtime = 0; // runtime of collision detection algorithm
     this.canvas.addEventListener('mousedown', this._onMouseDown.bind(this));
     this.canvas.addEventListener('mouseup', this._onMouseUp.bind(this));
     this.canvas.addEventListener('mousemove', this._onMouseMove.bind(this));
 
     this.params = new AppParams(this);
-    this.params.nCircles = 5;
-    this.params.collisionDetectionStrategy = collisionDetectionStrategies.QUAD_TREE;
-    this.params.maxNodeCapacity = 1;
-    this.params.maxTreeDepth = 100;
-    this.params.runtime = 0;
-    this.params.drawTree = true;
-    this.initTweakPane();
-  }
-
-  initTweakPane () {
-    this.pane = new Tweakpane.Pane();
-    const paramsFolder = this.pane.addFolder({
-      title: "Parameters"
-    })
-    const graphsFolder = this.pane.addFolder({
-      title: "Graphs"
-    })
-    paramsFolder.addInput(this.params, 'collisionDetectionStrategy', {
-      options: {
-        'Brute force': collisionDetectionStrategies.BRUTE_FORCE,
-        'Quad tree': collisionDetectionStrategies.QUAD_TREE
-      }
-    });
-    paramsFolder.addInput(this.params, 'nCircles', {
-      step: 1,
-      min: 1,
-      max: 1500
-    });
-    paramsFolder.addInput(this.params, 'maxNodeCapacity', {
-      step: 1,
-      min: 1,
-      max: 100
-    });
-    paramsFolder.addInput(this.params, 'maxTreeDepth', {
-      step: 1,
-      min: 1,
-      max: 100
-    });
-    paramsFolder.addInput(this.params, 'drawTree');
-
-    graphsFolder.addMonitor(this.params, 'nCircles', {
-      view: 'graph',
-      min: 1,
-      max: 1500
-    });
-    graphsFolder.addMonitor(this.params, 'runtime', {
-      view: 'graph',
-      min: 1,
-      max: 300
-    });
+    this.params.initUi();
   }
 
   get rootBounds () {
@@ -97,7 +48,7 @@ class App extends AbstractApp {
     ])
   }
 
-  _initCircles (n = 5) {
+  _initCircles (n) {
     this.circles = [];
     for (let i = 0; i < n; i++) {
       const { width, height } = this.canvas;
@@ -137,7 +88,7 @@ class App extends AbstractApp {
   update () {
     if (this.mouseDownPosition) {
       this._addCircle(this.mouseDownPosition);
-      this.pane.refresh();
+      this.params.refreshUi();
     }
     const {canvas} = this.ctx;
 
@@ -159,8 +110,8 @@ class App extends AbstractApp {
     const collidingPairs = this.collisionDetectionStrategies.get(this.collisionDetectionStrategy).getCollidingPairs(this.shapes);
 
     for (const collidingPair of collidingPairs) {
-        collidingPair[0].color = colors.GRAY;
-        collidingPair[1].color = colors.GRAY;
+        collidingPair[0].color = colors.ORANGE;
+        collidingPair[1].color = colors.ORANGE;
     }
   }
 
@@ -183,8 +134,55 @@ class AppParams {
         this.app = app;
     }
 
+    initUi() {
+        this.tweakPane = new Tweakpane.Pane();
+        const paramsFolder = this.tweakPane.addFolder({
+            title: "Parameters"
+        })
+        const graphsFolder = this.tweakPane.addFolder({
+            title: "Graphs"
+        })
+        paramsFolder.addInput(this, 'collisionDetectionStrategy', {
+            options: {
+                'Brute force': collisionDetectionStrategies.BRUTE_FORCE,
+                'Quad tree': collisionDetectionStrategies.QUAD_TREE
+            }
+        });
+        paramsFolder.addInput(this, 'nCircles', {
+            step: 1,
+            min: 1,
+            max: 1500
+        });
+        paramsFolder.addInput(this, 'maxCapacity', {
+            step: 1,
+            min: 1,
+            max: 100
+        });
+        paramsFolder.addInput(this, 'maxDepth', {
+            step: 1,
+            min: 1,
+            max: 100
+        });
+        paramsFolder.addInput(this, 'drawTree');
+
+        graphsFolder.addMonitor(this, 'nCircles', {
+            view: 'graph',
+            min: 1,
+            max: 1500
+        });
+        graphsFolder.addMonitor(this, 'runtime', {
+            view: 'graph',
+            min: 1,
+            max: 300
+        });
+    }
+
+    refreshUi() {
+        this.tweakPane.refresh();
+    }
+
     set nCircles (x) {
-        if (x !== this.app.shapes?.length) {
+        if (x !== this.app.shapes.length) {
             this.app._initCircles(x);
         }
     }
@@ -194,7 +192,7 @@ class AppParams {
     }
 
     set collisionDetectionStrategy (x) {
-        this.app.quadTree.clear();
+        this.app.quadTree.destroy();
         this.app.collisionDetectionStrategy = x;
     }
 
@@ -202,20 +200,20 @@ class AppParams {
         return this.app.collisionDetectionStrategy;
     }
 
-    set maxNodeCapacity (x) {
-        this.app.quadTree.maxNodeCapacity = x;
+    set maxCapacity (x) {
+        this.app.quadTree.maxCapacity = x;
     }
 
-    get maxNodeCapacity () {
-        return this.app.quadTree.maxNodeCapacity;
+    get maxCapacity () {
+        return this.app.quadTree.maxCapacity;
     }
 
-    set maxTreeDepth (x) {
-        this.app.quadTree.maxTreeDepth = x;
+    set maxDepth (x) {
+        this.app.quadTree.maxDepth = x;
     }
 
-    get maxTreeDepth () {
-        return this.app.quadTree.maxTreeDepth;
+    get maxDepth () {
+        return this.app.quadTree.maxDepth;
     }
 
     set runtime (x) {

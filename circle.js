@@ -1,4 +1,3 @@
-import Vector from "./vector.js";
 import {QuadtreeElement} from "./quadtree.js";
 
 
@@ -28,21 +27,6 @@ export class Circle {
 
     throw new Error("Collision check not implemented")
   }
-
-  update(ctx) {
-    const {width, height} = ctx.canvas;
-    const {position, velocity} = this;
-    const {x, y} = position;
-    if (x >= width || x <= 0) {
-      this.velocity = velocity.mul(new Vector(-1, 1))
-    }
-    if (y >= height || y <= 0) {
-      this.velocity = velocity.mul(new Vector(1, -1))
-    }
-    this.position = position.add(this.velocity);
-    this.collision = false; // reset collision state
-  }
-
 
   /**
    * Returns if this circle is within the rectangle bounds

@@ -1,4 +1,4 @@
-export default class App {
+export class BaseApp {
 
   constructor (canvas, options) {
     this._update = this._update.bind(this);
