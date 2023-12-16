@@ -1,23 +1,32 @@
 import Vector from "./vector.js";
+import {QuadtreeElement} from "./quadtree.js";
 
 
-export default class Circle {
+/**
+ * @implements QuadtreeElement
+ * @implements Shape2D
+ */
+export class Circle {
 
-  constructor (position = new Vector(0, 0), velocity = new Vector(1, 1), radius = 5) {
+  constructor (position, velocity, radius, color) {
     this.position = position;
     this.velocity = velocity;
     this.radius = radius;
-    this.collision = false; // is this circle colliding with any other circles
+    this.color = color;
   }
 
-  distanceTo(circle) {
-    return this.position.sub(circle.position).abs();
-  }
+  /**
+   * @param shape {Shape2D}
+   */
+  collidesWith(shape) {
+    if (shape instanceof Circle) {
+      const combinedRadius = this.radius + shape.radius;
+      const distance = this.position.sub(shape.position).abs();
+      const isTouching = distance <= combinedRadius;
+      return isTouching && this !== shape && !this.collision && !shape.collision;
+    }
 
-  intersectsCircle(circle) {
-    const combinedRadius = this.radius + circle.radius;
-    const isTouching = this.distanceTo(circle) <= combinedRadius;
-    return isTouching && this !== circle && !this.collision && !circle.collision;
+    throw new Error("Collision check not implemented")
   }
 
   update(ctx) {
@@ -34,10 +43,26 @@ export default class Circle {
     this.collision = false; // reset collision state
   }
 
+
+  /**
+   * Returns if this circle is within the rectangle bounds
+   * @param bounds {Rectangle}
+   */
+  isWithinBounds (bounds) {
+    const { x0, y0, x1, y1 } = bounds;
+    const { position, radius } = this;
+    return (
+        x0 <= position.x - radius &&
+        x1 >= position.x + radius &&
+        y0 <= position.y - radius &&
+        y1 >= position.y + radius
+    )
+  }
+
   render(ctx) {
-    const {radius, collision} = this;
+    const {radius} = this;
     const {x, y} = this.position;
-    ctx.strokeStyle = collision ? '#ff7f00' : 'rgb(72, 72, 72)';
+    ctx.strokeStyle = this.color;
     ctx.lineWidth = 2;
     ctx.beginPath();
     ctx.arc(x, y, radius, 0, 2 * Math.PI);

@@ -1,6 +1,6 @@
 import Rectangle from "./rectangle";
-import Circle from "./circle";
-import QuadTree from "./quadtree";
+import {Circle} from "./circle";
+import {QuadTree} from "./quadtree";
 import Vector from "./vector";
 
 const initCircle = (x, y, r) => new Circle(new Vector(x, y), 0, r);

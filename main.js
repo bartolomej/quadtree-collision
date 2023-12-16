@@ -1,103 +1,50 @@
 import AbstractApp from "./app.js";
-import Circle from "./circle.js";
+import {Circle} from "./circle.js";
 import Vector from "./vector.js";
-import QuadTree from "./quadtree.js";
+import {QuadTree} from "./quadtree.js";
 import Rectangle from "./rectangle.js";
+import {BruteforceCollisionDetection, QuadtreeCollisionDetection} from "./collision-detection.js";
 
 
-const ALGORITHM = {
-  BRUTE_FORCE: 'brute_force',
-  QUAD_TREE: 'quad_tree'
+const collisionDetectionStrategies = {
+    BRUTE_FORCE: "BRUTE_FORCE",
+    QUAD_TREE: "QUAD_TREE"
+}
+
+const colors = {
+    ORANGE: '#ff7f00',
+    GRAY: '#484848FF'
 }
 
 class App extends AbstractApp {
 
   start () {
-    this._initParams();
-    this._initPane();
-    this.circles = [];
+    this.collisionDetectionStrategies = new Map([
+        [collisionDetectionStrategies.QUAD_TREE, new QuadtreeCollisionDetection()],
+        [collisionDetectionStrategies.BRUTE_FORCE, new BruteforceCollisionDetection()],
+    ])
+    this.shapes = [];
     this.mouseDownPosition = null;
     this.drawTree = true;
-    this.algorithm = ALGORITHM.QUAD_TREE;
-    this.quadTree = new QuadTree(this._getBounds());
+    this.collisionDetectionStrategy = collisionDetectionStrategies.QUAD_TREE;
+    this.quadTree = new QuadTree(this.rootBounds);
     this._initCircles();
     this.runtime = 0; // runtime of collision detection algorithm
     this.canvas.addEventListener('mousedown', this._onMouseDown.bind(this));
     this.canvas.addEventListener('mouseup', this._onMouseUp.bind(this));
     this.canvas.addEventListener('mousemove', this._onMouseMove.bind(this));
-  }
 
-  _initParams () {
-    class Params {
-      constructor (app) {
-        this.app = app;
-      }
-
-      set nCircles (x) {
-        if (x !== this.app.circles?.length) {
-          this.app._initCircles(x);
-        }
-        console.log("set nCircles: ", x);
-      }
-
-      get nCircles () {
-        console.log("get nCircles: ", this.app.circles.length);
-        return this.app.circles.length;
-      }
-
-      set algorithm (x) {
-        this.app.quadTree.clear();
-        this.app.algorithm = x;
-      }
-
-      get algorithm () {
-        return this.app.algorithm;
-      }
-
-      set maxNodeCapacity (x) {
-        this.app.quadTree.maxNodeCapacity = x;
-      }
-
-      get maxNodeCapacity () {
-        return this.app.quadTree.maxNodeCapacity;
-      }
-
-      set maxTreeDepth (x) {
-        this.app.quadTree.maxTreeDepth = x;
-      }
-
-      get maxTreeDepth () {
-        return this.app.quadTree.maxTreeDepth;
-      }
-
-      set runtime (x) {
-        this.app.runtime = x;
-      }
-
-      get runtime () {
-        return this.app.runtime;
-      }
-
-      set drawTree (x) {
-        this.app.drawTree = x;
-      }
-
-      get drawTree () {
-        return this.app.drawTree;
-      }
-
-    }
-
-    this.params = new Params(this);
+    this.params = new AppParams(this);
     this.params.nCircles = 5;
-    this.params.algorithm = ALGORITHM.QUAD_TREE;
+    this.params.collisionDetectionStrategy = collisionDetectionStrategies.QUAD_TREE;
     this.params.maxNodeCapacity = 1;
     this.params.maxTreeDepth = 100;
     this.params.runtime = 0;
     this.params.drawTree = true;
+    this.initTweakPane();
   }
 
-  _initPane () {
+  initTweakPane () {
     this.pane = new Tweakpane.Pane();
     const paramsFolder = this.pane.addFolder({
       title: "Parameters"
@@ -105,10 +52,10 @@ class App extends AbstractApp {
     const graphsFolder = this.pane.addFolder({
       title: "Graphs"
     })
-    paramsFolder.addInput(this.params, 'algorithm', {
+    paramsFolder.addInput(this.params, 'collisionDetectionStrategy', {
       options: {
-        'Brute force': ALGORITHM.BRUTE_FORCE,
-        'Quad tree': ALGORITHM.QUAD_TREE
+        'Brute force': collisionDetectionStrategies.BRUTE_FORCE,
+        'Quad tree': collisionDetectionStrategies.QUAD_TREE
       }
     });
     paramsFolder.addInput(this.params, 'nCircles', {
@@ -140,7 +87,7 @@ class App extends AbstractApp {
     });
   }
 
-  _getBounds () {
+  get rootBounds () {
     const { canvas } = this;
     return new Rectangle(...[
       0,
@@ -164,7 +111,7 @@ class App extends AbstractApp {
     const rFactor = 10;
     const radius = (Math.random() + 1) * rFactor;
     const velocity = new Vector(Math.random() * vFactor, Math.random() * vFactor);
-    this.circles.push(new Circle(position, velocity, radius))
+    this.shapes.push(new Circle(position, velocity, radius, colors.GRAY))
   }
 
   _onMouseDown (e) {
@@ -182,42 +129,9 @@ class App extends AbstractApp {
     this.mouseDownPosition = null;
   }
 
-  _bruteForceCollisionDetection () {
-    const { circles } = this;
-    const t0 = performance.now();
-    circles.forEach((a) => {
-      circles.forEach((b) => {
-        if (a.intersectsCircle(b)) {
-          a.collision = true;
-          b.collision = true;
-        }
-      })
-    });
-    const t1 = performance.now();
-    this.runtime = t1 - t0;
-  }
-
-  _quadTreeCollisionDetection () {
-    const { circles, quadTree } = this;
-    const t0 = performance.now();
-    quadTree.clear();
-    quadTree.insertAll(circles);
-    circles.forEach(circle => {
-      const candidates = quadTree.retrieve(circle);
-      candidates.forEach(candidate => {
-        if (candidate.intersectsCircle(circle)) {
-          circle.collision = true;
-          candidate.collision = true;
-        }
-      })
-    })
-    const t1 = performance.now();
-    this.runtime = t1 - t0;
-  }
-
   resize () {
     // update quad tree bounds, as the canvas dimensions changed
-    this.quadTree = new QuadTree(this._getBounds());
+    this.quadTree = new QuadTree(this.rootBounds);
   }
 
   update () {
@@ -225,27 +139,101 @@ class App extends AbstractApp {
       this._addCircle(this.mouseDownPosition);
       this.pane.refresh();
     }
-    this.circles.forEach(circle => circle.update(this.ctx));
+    const {canvas} = this.ctx;
 
-    // check for collisions
-    switch (this.algorithm) {
-      case ALGORITHM.BRUTE_FORCE: {
-        return this._bruteForceCollisionDetection();
-      }
-      case ALGORITHM.QUAD_TREE: {
-        return this._quadTreeCollisionDetection();
-      }
+    for (const shape of this.shapes) {
+        if (shape.position.x >= canvas.width || shape.position.x <= 0) {
+            shape.velocity = shape.velocity.mul(new Vector(-1, 1))
+        }
+        if (shape.position.y >= canvas.height || shape.position.y <= 0) {
+            shape.velocity = shape.velocity.mul(new Vector(1, -1))
+        }
+        shape.position = shape.position.add(shape.velocity);
+
+        // Reset the color to the default one
+        shape.color = colors.GRAY;
+    }
+
+    // TODO: Check for collisions
+
+    const collidingPairs = this.collisionDetectionStrategies.get(this.collisionDetectionStrategy).getCollidingPairs(this.shapes);
+
+    for (const collidingPair of collidingPairs) {
+        collidingPair[0].color = colors.GRAY;
+        collidingPair[1].color = colors.GRAY;
     }
   }
 
   render () {
-    const { ctx, circles, quadTree, drawTree } = this;
+    const { ctx, quadTree, drawTree } = this;
     super.render();
     if (drawTree) {
       quadTree.render(ctx);
     }
-    circles.forEach(circle => circle.render(ctx))
+    this.shapes.forEach(shape => shape.render(ctx))
   }
+}
+
+class AppParams {
+
+    /**
+     * @param app {App}
+     */
+    constructor (app) {
+        this.app = app;
+    }
+
+    set nCircles (x) {
+        if (x !== this.app.shapes?.length) {
+            this.app._initCircles(x);
+        }
+    }
+
+    get nCircles () {
+        return this.app.shapes.length;
+    }
+
+    set collisionDetectionStrategy (x) {
+        this.app.quadTree.clear();
+        this.app.collisionDetectionStrategy = x;
+    }
+
+    get collisionDetectionStrategy () {
+        return this.app.collisionDetectionStrategy;
+    }
+
+    set maxNodeCapacity (x) {
+        this.app.quadTree.maxNodeCapacity = x;
+    }
+
+    get maxNodeCapacity () {
+        return this.app.quadTree.maxNodeCapacity;
+    }
+
+    set maxTreeDepth (x) {
+        this.app.quadTree.maxTreeDepth = x;
+    }
+
+    get maxTreeDepth () {
+        return this.app.quadTree.maxTreeDepth;
+    }
+
+    set runtime (x) {
+        this.app.runtime = x;
+    }
+
+    get runtime () {
+        return this.app.runtime;
+    }
+
+    set drawTree (x) {
+        this.app.drawTree = x;
+    }
+
+    get drawTree () {
+        return this.app.drawTree;
+    }
+
 }
 
 document.addEventListener('DOMContentLoaded', () => {
