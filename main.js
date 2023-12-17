@@ -4,6 +4,7 @@ import Vector from "./vector.js";
 import {QuadTree} from "./quadtree.js";
 import Rectangle from "./rectangle.js";
 import {BruteforceCollisionDetection, QuadtreeCollisionDetection} from "./collision.js";
+import * as TweakPane from "./tweakpane.min.js"
 
 
 const collisionDetectionStrategies = {
@@ -138,49 +139,54 @@ class AppParams {
     }
 
     initUi() {
-        this.tweakPane = new Tweakpane.Pane();
-        const paramsFolder = this.tweakPane.addFolder({
-            title: "Parameters"
+        this.tweakPane = new TweakPane.Pane();
+        const generalFolder = this.tweakPane.addFolder({
+            title: "General"
+        });
+        const quadTreeFolder = this.tweakPane.addFolder({
+            title: "Quad tree"
+        });
+        const perfFolder = this.tweakPane.addFolder({
+            title: "Performance"
         })
-        const graphsFolder = this.tweakPane.addFolder({
-            title: "Graphs"
-        })
-        paramsFolder.addInput(this, 'collisionDetectionStrategy', {
+        generalFolder.addBinding(this, 'collisionDetectionStrategy', {
             label: "algorithm",
             options: {
                 'Brute force': collisionDetectionStrategies.BRUTE_FORCE,
                 'Quad tree': collisionDetectionStrategies.QUAD_TREE
             }
         });
-        paramsFolder.addInput(this, 'numberOfObjects', {
+        generalFolder.addBinding(this, 'numberOfObjects', {
             label: "object count",
             step: 1,
             min: 1,
             max: 1500
         });
-        paramsFolder.addInput(this, 'maxCapacity', {
+        quadTreeFolder.addBinding(this, 'maxCapacity', {
             label: "max capacity",
             step: 1,
             min: 1,
             max: 100
         });
-        paramsFolder.addInput(this, 'maxDepth', {
+        quadTreeFolder.addBinding(this, 'maxDepth', {
             label: "max depth",
             step: 1,
             min: 1,
             max: 100
         });
-        paramsFolder.addInput(this, 'drawTree', {
+        quadTreeFolder.addBinding(this, 'drawTree', {
             label: "draw tree"
         });
 
-        graphsFolder.addMonitor(this, 'numberOfObjects', {
+        perfFolder.addBinding(this, 'numberOfObjects', {
+            readonly: true,
             label: "objects count",
             view: 'graph',
             min: 1,
             max: 1500
         });
-        graphsFolder.addMonitor(this, 'runtime', {
+        perfFolder.addBinding(this, 'runtime', {
+            readonly: true,
             label: "runtime (ms)",
             view: 'graph',
             min: 1,
