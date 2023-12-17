@@ -28,8 +28,7 @@ class App extends BaseApp {
         [collisionDetectionStrategies.QUAD_TREE, new QuadtreeCollisionDetection(this.quadTree)],
         [collisionDetectionStrategies.BRUTE_FORCE, new BruteforceCollisionDetection()],
     ])
-    this._initCircles(5);
-    this.runtime = 0; // runtime of collision detection algorithm
+    this.initShapes(5);
     this.canvas.addEventListener('mousedown', this._onMouseDown.bind(this));
     this.canvas.addEventListener('mouseup', this._onMouseUp.bind(this));
     this.canvas.addEventListener('mousemove', this._onMouseMove.bind(this));
@@ -48,16 +47,16 @@ class App extends BaseApp {
     ])
   }
 
-  _initCircles (n) {
-    this.circles = [];
-    for (let i = 0; i < n; i++) {
+  initShapes (numberOfShapes) {
+    this.shapes = [];
+    for (let i = 0; i < numberOfShapes; i++) {
       const { width, height } = this.canvas;
-      const position = new Vector(Math.random() * width, Math.random() * height);
-      this._addCircle(position);
+      const randomPosition = new Vector(Math.random() * width, Math.random() * height);
+      this.addRandomShape(randomPosition);
     }
   }
 
-  _addCircle (position) {
+  addRandomShape (position) {
     const vFactor = 2 * (Math.random() > 0.5 ? -1 : 1);
     const rFactor = 10;
     const radius = (Math.random() + 1) * rFactor;
@@ -81,13 +80,15 @@ class App extends BaseApp {
   }
 
   resize () {
-    // update quad tree bounds, as the canvas dimensions changed
-    this.quadTree = new QuadTree(this.rootBounds);
+      if (this.quadTree) {
+          this.quadTree.destroy();
+          this.quadTree.bounds = this.rootBounds;
+      }
   }
 
   update () {
     if (this.mouseDownPosition) {
-      this._addCircle(this.mouseDownPosition);
+      this.addRandomShape(this.mouseDownPosition);
       this.params.refreshUi();
     }
     const {canvas} = this.ctx;
@@ -105,9 +106,10 @@ class App extends BaseApp {
         shape.color = colors.GRAY;
     }
 
-    // TODO: Check for collisions
-
+    const t0 = performance.now();
     const collidingPairs = this.collisionDetectionStrategies.get(this.collisionDetectionStrategy).getCollidingPairs(this.shapes);
+    const t1 = performance.now();
+    this.params.runtime = t1 - t0;
 
     for (const collidingPair of collidingPairs) {
         collidingPair[0].color = colors.ORANGE;
@@ -132,6 +134,7 @@ class AppParams {
      */
     constructor (app) {
         this.app = app;
+        this.runtime = 0;
     }
 
     initUi() {
@@ -143,34 +146,42 @@ class AppParams {
             title: "Graphs"
         })
         paramsFolder.addInput(this, 'collisionDetectionStrategy', {
+            label: "algorithm",
             options: {
                 'Brute force': collisionDetectionStrategies.BRUTE_FORCE,
                 'Quad tree': collisionDetectionStrategies.QUAD_TREE
             }
         });
-        paramsFolder.addInput(this, 'nCircles', {
+        paramsFolder.addInput(this, 'numberOfObjects', {
+            label: "object count",
             step: 1,
             min: 1,
             max: 1500
         });
         paramsFolder.addInput(this, 'maxCapacity', {
+            label: "max capacity",
             step: 1,
             min: 1,
             max: 100
         });
         paramsFolder.addInput(this, 'maxDepth', {
+            label: "max depth",
             step: 1,
             min: 1,
             max: 100
         });
-        paramsFolder.addInput(this, 'drawTree');
+        paramsFolder.addInput(this, 'drawTree', {
+            label: "draw tree"
+        });
 
-        graphsFolder.addMonitor(this, 'nCircles', {
+        graphsFolder.addMonitor(this, 'numberOfObjects', {
+            label: "objects count",
             view: 'graph',
             min: 1,
             max: 1500
         });
         graphsFolder.addMonitor(this, 'runtime', {
+            label: "runtime (ms)",
             view: 'graph',
             min: 1,
             max: 300
@@ -181,13 +192,13 @@ class AppParams {
         this.tweakPane.refresh();
     }
 
-    set nCircles (x) {
+    set numberOfObjects (x) {
         if (x !== this.app.shapes.length) {
-            this.app._initCircles(x);
+            this.app.initShapes(x);
         }
     }
 
-    get nCircles () {
+    get numberOfObjects () {
         return this.app.shapes.length;
     }
 
@@ -216,14 +227,6 @@ class AppParams {
         return this.app.quadTree.maxDepth;
     }
 
-    set runtime (x) {
-        this.app.runtime = x;
-    }
-
-    get runtime () {
-        return this.app.runtime;
-    }
-
     set drawTree (x) {
         this.app.drawTree = x;
     }
@@ -237,5 +240,4 @@ class AppParams {
 document.addEventListener('DOMContentLoaded', () => {
   const canvas = document.querySelector('canvas');
   window.app = new App(canvas);
-
 })
