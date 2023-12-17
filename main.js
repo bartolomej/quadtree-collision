@@ -159,6 +159,8 @@ class App extends BaseApp {
 /**
  * This class uses a helper library (TweakPane) to easily
  * display the UI for controlling and displaying parameters.
+ * I hope this doesn't count as using external libraries,
+ * since I didn't use any libraries for the core logic.
  */
 class AppParams {
 
