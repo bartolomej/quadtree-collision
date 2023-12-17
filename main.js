@@ -18,6 +18,12 @@ const colors = {
     GRAY: '#484848FF'
 }
 
+/**
+ * This codebase is purposely a bit over-engineered (e.g. with usage of interfaces),
+ * but I wanted to build a flexible system that wouldn't be limited to just circle shapes.
+ * + I also just wanted to try out JSDoc types a bit :)
+ * Although I then ran out of time and didn't get a chance to fully realise that.
+ */
 class App extends BaseApp {
 
     start() {
@@ -105,24 +111,28 @@ class App extends BaseApp {
     update() {
         const {canvas} = this.ctx;
 
-        for (const shape of this.objects) {
-            if (!(shape instanceof Circle)) {
+        for (const object of this.objects) {
+            if (!(object instanceof Circle)) {
                 throw new Error("Circle is the only supported shape")
             }
-            if (shape.position.x + shape.radius >= canvas.width || shape.position.x - shape.radius <= 0) {
-                shape.velocity = shape.velocity.mul(new Vector(-1, 1))
+            // More flexible way to perform this collision check (e.g. when using multiple shapes),
+            // would be by defining borders as rectangles using `Rectangle` class
+            // and then using `Rectangle.collidesWith(object)` (assuming it implements Object2D interface)
+            // to perform the collision check for any object type.
+            if (object.position.x + object.radius >= canvas.width || object.position.x - object.radius <= 0) {
+                object.velocity = object.velocity.mul(new Vector(-1, 1))
             }
-            if (shape.position.y + shape.radius >= canvas.height || shape.position.y - shape.radius <= 0) {
-                shape.velocity = shape.velocity.mul(new Vector(1, -1))
+            if (object.position.y + object.radius >= canvas.height || object.position.y - object.radius <= 0) {
+                object.velocity = object.velocity.mul(new Vector(1, -1))
             }
-            shape.position = shape.position.add(shape.velocity);
+            object.position = object.position.add(object.velocity);
 
             // Clamp positions to stay within bounds (otherwise quadtree collision detection may fail)
-            shape.position.x = Math.max(shape.radius, Math.min(shape.position.x, canvas.width - shape.radius));
-            shape.position.y = Math.max(shape.radius, Math.min(shape.position.y, canvas.height - shape.radius));
+            object.position.x = Math.max(object.radius, Math.min(object.position.x, canvas.width - object.radius));
+            object.position.y = Math.max(object.radius, Math.min(object.position.y, canvas.height - object.radius));
 
             // Reset the color to the default one
-            shape.color = colors.GRAY;
+            object.color = colors.GRAY;
         }
 
         const t0 = performance.now();
@@ -146,6 +156,10 @@ class App extends BaseApp {
     }
 }
 
+/**
+ * This class uses a helper library (TweakPane) to easily
+ * display the UI for controlling and displaying parameters.
+ */
 class AppParams {
 
     /**

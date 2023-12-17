@@ -110,6 +110,11 @@ export class QuadTree {
     /**
      * Returns a set of collision candidates for a given element.
      * Finds the minimum bounding box node and retrieves all descendant elements of that node.
+     *
+     * This should avoid the issue where collision detection
+     * between elements in different subtrees is undetected,
+     * since we don't just return all elements within the same leaf node / subtree.
+     *
      * @param element {Object2D}
      * @returns {Object2D[]}
      */
