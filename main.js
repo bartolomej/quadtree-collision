@@ -26,6 +26,7 @@ class App extends BaseApp {
          */
         this.objects = [];
         this.mouseDownPosition = null;
+        this.objectCreationInterval = null;
         this.drawTree = true;
         this.collisionDetectionStrategy = collisionDetectionStrategies.QUAD_TREE;
         this.quadTree = new QuadTree(this.rootBounds, 50, 5);
@@ -58,11 +59,11 @@ class App extends BaseApp {
         for (let i = 0; i < numberOfShapes; i++) {
             const {width, height} = this.canvas;
             const randomPosition = new Vector(Math.random() * width, Math.random() * height);
-            this.addRandomShape(randomPosition);
+            this.addRandomObject(randomPosition);
         }
     }
 
-    addRandomShape(position) {
+    addRandomObject(position) {
         const randomDirection = () => Math.random() > 0.5 ? -1 : 1;
         const velocity = new Vector(
             Math.random() * this.params.objectVelocityFactor * randomDirection(),
@@ -78,6 +79,8 @@ class App extends BaseApp {
 
     _onMouseDown(e) {
         this.mouseDownPosition = new Vector(e.clientX, e.clientY);
+        this.addRandomObject(this.mouseDownPosition);
+        this.objectCreationInterval = setInterval(() => this.addRandomObject(this.mouseDownPosition), 50)
     }
 
     _onMouseMove(e) {
@@ -89,6 +92,7 @@ class App extends BaseApp {
 
     _onMouseUp() {
         this.mouseDownPosition = null;
+        clearInterval(this.objectCreationInterval);
     }
 
     resize() {
@@ -99,13 +103,10 @@ class App extends BaseApp {
     }
 
     update() {
-        if (this.mouseDownPosition) {
-            this.addRandomShape(this.mouseDownPosition);
-            this.params.refreshUi();
-        }
         const {canvas} = this.ctx;
 
         for (const shape of this.objects) {
+            // TODO: Fix collision calculation to include object radius/size (maybe reuse Rectangle)
             if (shape.position.x >= canvas.width || shape.position.x <= 0) {
                 shape.velocity = shape.velocity.mul(new Vector(-1, 1))
             }
