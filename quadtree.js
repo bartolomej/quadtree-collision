@@ -1,5 +1,5 @@
-import Rectangle from "./rectangle.js";
-
+import {Rectangle} from "./rectangle.js";
+import {Object2D} from "./2d-object.js";
 
 export class QuadTree {
 
@@ -8,10 +8,13 @@ export class QuadTree {
      * @param maxDepth {number}
      * @param maxCapacity {number}
      * @param depth {number}
-     * @param elements {QuadtreeElement[]}
+     * @param elements {Object2D[]}
      * @constructor
      */
     constructor(bounds, maxDepth, maxCapacity, depth = 0, elements = []) {
+        /**
+         * @type {QuadTree[]}
+         */
         this.children = [];
         this.maxDepth = maxDepth;
         this.maxCapacity = maxCapacity;
@@ -92,52 +95,75 @@ export class QuadTree {
     }
 
     /**
-     * @param element {QuadtreeElement}
+     * @param element {Object2D}
      */
     insert(element) {
-        const childNode = this.children.find(node => element.isWithinBounds(node.bounds))
-
-        if (childNode) {
-            childNode.insert(element);
-        } else {
+        if (this.isLeafNode()) {
             this.elements.push(element);
             this.subdivideIfReachedCapacity();
+        } else {
+            const targetNode = this.findTargetChildOrThrow(element);
+            targetNode.insert(element);
         }
-
     }
 
     /**
-     * @param element {QuadtreeElement}
-     * @returns {QuadtreeElement[]}
+     * @param element {Object2D}
+     * @returns {Object2D[]}
      */
     lookupNeighbourElements(element) {
-        const target = this.children.find(node => element.isWithinBounds(node.bounds));
-        const neighbours = [];
-
-        if (target) {
-            neighbours.push(...target.lookupNeighbourElements(element))
+        if (this.isLeafNode()) {
+            return this.elements;
+        } else {
+            return this.findTargetChildOrThrow(element).lookupNeighbourElements(element)
         }
-
-        // TODO: Only the leaf nodes should contain data/elements
-        neighbours.push(...this.elements);
-
-        return neighbours;
     }
 
     subdivideIfReachedCapacity() {
-        if (this.elements.length >= this.maxCapacity && this.depth < this.maxDepth) {
-            if (this.children.length === 0) {
-                this.subdivide();
-            }
-            // keep the circles that do not belong to any of the child nodes
-            this.elements = this.elements.filter(element => {
-                const childNode = this.children.find(node => element.isWithinBounds(node.bounds));
-                if (childNode) {
-                    childNode.insert(element);
-                }
-                return !childNode;
-            })
+        if (!this.isLeafNode()) {
+            throw new Error("Assertion: Cannot subdivide non-leaf node")
         }
+
+        if (this.elements.length >= this.maxCapacity && this.depth < this.maxDepth) {
+            this.subdivide();
+
+            for (const element of this.elements) {
+                const targetNode = this.findTargetChildOrThrow(element)
+                targetNode.insert(element);
+            }
+        }
+    }
+
+    /**
+     * @param element {Object2D}
+     * @returns {QuadTree}
+     */
+    findTargetChildOrThrow(element) {
+        const targetNode = this.children.find(node => this.isElementWithinBounds(element, node.bounds));
+
+        if (!targetNode) {
+            throw new Error(`Assertion: Target node not found for element (${JSON.stringify(element)})`)
+        }
+
+        return targetNode;
+    }
+
+    /**
+     * Returns true, if an object is within the rectangle bounds
+     * @param element {Object2D}
+     * @param bounds {Rectangle}
+     */
+    isElementWithinBounds (element, bounds) {
+        return (
+            bounds.x0 <= element.position.x &&
+            bounds.x1 >= element.position.x &&
+            bounds.y0 <= element.position.y &&
+            bounds.y1 >= element.position.y
+        )
+    }
+
+    isLeafNode() {
+        return this.children.length === 0;
     }
 
     /**
@@ -149,24 +175,4 @@ export class QuadTree {
         this.children.forEach(node => node.render(ctx))
     }
 
-}
-
-/**
- * @interface QuadtreeElement
- *
- * Object that can check if it's within a bounds of a rectangle.
- *
- * This allows us to store multiple objects types
- * within the same quadtree implementation/instance.
- */
-export class QuadtreeElement {
-
-    /**
-     * Returns if this object is within the rectangle bounds.
-     * @param bounds {Rectangle}
-     * @returns {boolean}
-     */
-    isWithinBounds(bounds) {
-        throw new Error("Not implemented")
-    }
 }

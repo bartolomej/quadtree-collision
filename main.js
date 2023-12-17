@@ -1,8 +1,9 @@
 import {BaseApp} from "./base-app.js";
 import {Circle} from "./circle.js";
-import Vector from "./vector.js";
+import {Vector} from "./vector.js";
 import {QuadTree} from "./quadtree.js";
-import Rectangle from "./rectangle.js";
+import {Object2D} from "./2d-object.js"
+import {Rectangle} from "./rectangle.js";
 import {BruteforceCollisionDetection, QuadtreeCollisionDetection} from "./collision.js";
 import * as TweakPane from "./tweakpane.min.js"
 
@@ -20,7 +21,10 @@ const colors = {
 class App extends BaseApp {
 
   start () {
-    this.shapes = [];
+      /**
+       * @type {Object2D[]}
+       */
+    this.objects = [];
     this.mouseDownPosition = null;
     this.drawTree = true;
     this.collisionDetectionStrategy = collisionDetectionStrategies.QUAD_TREE;
@@ -49,7 +53,7 @@ class App extends BaseApp {
   }
 
   initShapes (numberOfShapes) {
-    this.shapes = [];
+    this.objects = [];
     for (let i = 0; i < numberOfShapes; i++) {
       const { width, height } = this.canvas;
       const randomPosition = new Vector(Math.random() * width, Math.random() * height);
@@ -62,7 +66,7 @@ class App extends BaseApp {
     const rFactor = 10;
     const radius = (Math.random() + 1) * rFactor;
     const velocity = new Vector(Math.random() * vFactor, Math.random() * vFactor);
-    this.shapes.push(new Circle(position, velocity, radius, colors.GRAY))
+    this.objects.push(new Circle(position, velocity, radius, colors.GRAY))
   }
 
   _onMouseDown (e) {
@@ -88,13 +92,14 @@ class App extends BaseApp {
   }
 
   update () {
+      console.log(this.quadTree.bounds)
     if (this.mouseDownPosition) {
       this.addRandomShape(this.mouseDownPosition);
       this.params.refreshUi();
     }
     const {canvas} = this.ctx;
 
-    for (const shape of this.shapes) {
+    for (const shape of this.objects) {
         if (shape.position.x >= canvas.width || shape.position.x <= 0) {
             shape.velocity = shape.velocity.mul(new Vector(-1, 1))
         }
@@ -108,7 +113,7 @@ class App extends BaseApp {
     }
 
     const t0 = performance.now();
-    const collidingPairs = this.collisionDetectionStrategies.get(this.collisionDetectionStrategy).getCollidingPairs(this.shapes);
+    const collidingPairs = this.collisionDetectionStrategies.get(this.collisionDetectionStrategy).getCollidingPairs(this.objects);
     const t1 = performance.now();
     this.params.runtime = t1 - t0;
 
@@ -124,7 +129,7 @@ class App extends BaseApp {
     if (drawTree) {
       quadTree.render(ctx);
     }
-    this.shapes.forEach(shape => shape.render(ctx))
+    this.objects.forEach(object => object.render(ctx))
   }
 }
 
@@ -199,13 +204,13 @@ class AppParams {
     }
 
     set numberOfObjects (x) {
-        if (x !== this.app.shapes.length) {
+        if (x !== this.app.objects.length) {
             this.app.initShapes(x);
         }
     }
 
     get numberOfObjects () {
-        return this.app.shapes.length;
+        return this.app.objects.length;
     }
 
     set collisionDetectionStrategy (x) {

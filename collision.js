@@ -1,28 +1,15 @@
+import {Object2D} from "./2d-object.js"
+
 /**
  * @interface CollisionDetectionStrategy
  */
 class CollisionDetectionStrategy {
 
     /**
-     * @param shapes {Shape2D[]}
-     * @returns {Shape2D[][]}
+     * @param objects {Object2D[]}
+     * @returns {Object2D[][]}
      */
-    getCollidingPairs(shapes) {
-        throw new Error("Not implemented")
-    }
-}
-
-/**
- * @interface Shape2D
- */
-class Shape2D {
-
-    /**
-     * Check if collides with another shape.
-     * @param shape {Shape2D}
-     * @returns {boolean}
-     */
-    collidesWith(shape) {
+    getCollidingPairs(objects) {
         throw new Error("Not implemented")
     }
 }
@@ -41,21 +28,21 @@ export class QuadtreeCollisionDetection {
     }
 
 
-    getCollidingPairs(shapes) {
+    getCollidingPairs(objects) {
         const pairs = [];
 
         this.quadTree.destroy();
 
-        for (const shape of shapes) {
+        for (const shape of objects) {
             this.quadTree.insert(shape);
         }
 
-        for (const shape of shapes) {
-            const collisionCandidates = this.quadTree.lookupNeighbourElements(shape);
+        for (const objectA of objects) {
+            const collisionCandidates = this.quadTree.lookupNeighbourElements(objectA);
 
-            for (const candidate of collisionCandidates) {
-                if (shape.collidesWith(candidate)) {
-                    pairs.push([shape, candidate])
+            for (const objectB of collisionCandidates) {
+                if (objectA !== objectB && objectA.collidesWith(objectB)) {
+                    pairs.push([objectA, objectB])
                 }
             }
         }
@@ -69,12 +56,12 @@ export class QuadtreeCollisionDetection {
  */
 export class BruteforceCollisionDetection {
 
-    getCollidingPairs(shapes) {
+    getCollidingPairs(objects) {
         const pairs = [];
-        for (const shapeA of shapes) {
-            for (const shapeB of shapes) {
-                if (shapeA.collidesWith(shapeB)) {
-                    pairs.push([shapeA, shapeB])
+        for (const objectA of objects) {
+            for (const objectB of objects) {
+                if (objectA !== objectB && objectA.collidesWith(objectB)) {
+                    pairs.push([objectA, objectB])
                 }
             }
         }

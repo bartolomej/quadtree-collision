@@ -1,4 +1,4 @@
-export default class Vector {
+export class Vector {
   constructor (coords, ...rest) {
     // vector coordinates can be given in an array form: [x,y,z,..]
     // or in argument list form: x,y,z,..

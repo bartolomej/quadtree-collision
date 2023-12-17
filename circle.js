@@ -1,12 +1,16 @@
-import {QuadtreeElement} from "./quadtree.js";
-
+import {Object2D} from "./2d-object.js"
 
 /**
- * @implements QuadtreeElement
- * @implements Shape2D
+ * @implements Object2D
  */
 export class Circle {
 
+  /**
+   * @param position {Vector}
+   * @param velocity {Vector}
+   * @param radius {number}
+   * @param color {string}
+   */
   constructor (position, velocity, radius, color) {
     this.position = position;
     this.velocity = velocity;
@@ -15,32 +19,16 @@ export class Circle {
   }
 
   /**
-   * @param shape {Shape2D}
+   * @param object {Object2D}
    */
-  collidesWith(shape) {
-    if (shape instanceof Circle) {
-      const combinedRadius = this.radius + shape.radius;
-      const distance = this.position.sub(shape.position).abs();
-      const isTouching = distance <= combinedRadius;
-      return isTouching && this !== shape && !this.collision && !shape.collision;
+  collidesWith(object) {
+    if (object instanceof Circle) {
+      const combinedRadius = this.radius + object.radius;
+      const distance = this.position.sub(object.position).abs();
+      return distance <= combinedRadius;
     }
 
     throw new Error("Collision check not implemented")
-  }
-
-  /**
-   * Returns if this circle is within the rectangle bounds
-   * @param bounds {Rectangle}
-   */
-  isWithinBounds (bounds) {
-    const { x0, y0, x1, y1 } = bounds;
-    const { position, radius } = this;
-    return (
-        x0 <= position.x - radius &&
-        x1 >= position.x + radius &&
-        y0 <= position.y - radius &&
-        y1 >= position.y + radius
-    )
   }
 
   render(ctx) {
@@ -53,4 +41,5 @@ export class Circle {
     ctx.closePath();
     ctx.stroke();
   }
+
 }

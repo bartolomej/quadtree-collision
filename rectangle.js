@@ -1,4 +1,4 @@
-export default class Rectangle {
+export class Rectangle {
 
   constructor (x0, y0, x1, y1) {
     this.x0 = x0;
