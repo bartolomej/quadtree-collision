@@ -1,3 +1,5 @@
+import {Vector} from "./vector.js"
+
 /**
  * @interface Object2D
  *
@@ -5,17 +7,20 @@
  */
 export class Object2D {
     /**
-     * @property position {Vector}
+     * @property position
+     * @type {Vector}
      */
     position;
 
     /**
-     * @property velocity {Vector}
+     * @property velocity
+     * @type {Vector}
      */
     velocity;
 
     /**
-     * @property color {string}
+     * @property color
+     * @type {string}
      */
     color;
 

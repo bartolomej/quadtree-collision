@@ -108,6 +108,10 @@ class App extends BaseApp {
         }
         shape.position = shape.position.add(shape.velocity);
 
+        // Clamp positions to stay within bounds (otherwise quadtree collision detection may fail)
+        shape.position.x = Math.max(0, Math.min(shape.position.x, canvas.width));
+        shape.position.y = Math.max(0, Math.min(shape.position.y, canvas.height));
+
         // Reset the color to the default one
         shape.color = colors.GRAY;
     }

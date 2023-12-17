@@ -9,20 +9,20 @@ export class Vector {
     }
   }
 
-  setComponent (i, value) {
-    this._coords[i] = value;
-  }
-
-  getComponent (i) {
-    return this._coords[i];
-  }
-
   get x () {
     return this._coords[0];
   }
 
+  set x (value) {
+    this._coords[0] = value;
+  }
+
   get y () {
     return this._coords[1];
+  }
+
+  set y (value) {
+    this._coords[1] = value;
   }
 
   length () {
