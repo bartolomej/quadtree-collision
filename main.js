@@ -28,18 +28,19 @@ class App extends BaseApp {
         this.mouseDownPosition = null;
         this.drawTree = true;
         this.collisionDetectionStrategy = collisionDetectionStrategies.QUAD_TREE;
-        this.quadTree = new QuadTree(this.rootBounds, 100, 1);
+        this.quadTree = new QuadTree(this.rootBounds, 50, 5);
         this.collisionDetectionStrategies = new Map([
             [collisionDetectionStrategies.QUAD_TREE, new QuadtreeCollisionDetection(this.quadTree)],
             [collisionDetectionStrategies.BRUTE_FORCE, new BruteforceCollisionDetection()],
         ])
-        this.initShapes(5);
         this.canvas.addEventListener('mousedown', this._onMouseDown.bind(this));
         this.canvas.addEventListener('mouseup', this._onMouseUp.bind(this));
         this.canvas.addEventListener('mousemove', this._onMouseMove.bind(this));
 
         this.params = new AppParams(this);
         this.params.initUi();
+
+        this.initShapes(20);
     }
 
     get rootBounds() {
@@ -62,11 +63,17 @@ class App extends BaseApp {
     }
 
     addRandomShape(position) {
-        const vFactor = 2 * (Math.random() > 0.5 ? -1 : 1);
-        const rFactor = 10;
-        const radius = (Math.random() + 1) * rFactor;
-        const velocity = new Vector(Math.random() * vFactor, Math.random() * vFactor);
-        this.objects.push(new Circle(position, velocity, radius, colors.GRAY))
+        const randomDirection = () => Math.random() > 0.5 ? -1 : 1;
+        const velocity = new Vector(
+            Math.random() * this.params.objectVelocityFactor * randomDirection(),
+            Math.random() * this.params.objectVelocityFactor * randomDirection()
+        );
+        this.objects.push(new Circle(
+            position,
+            velocity,
+            Math.random() * this.params.objectSizeFactor,
+            colors.GRAY
+        ));
     }
 
     _onMouseDown(e) {
@@ -143,6 +150,8 @@ class AppParams {
      */
     constructor(app) {
         this.app = app;
+        this.objectVelocityFactor = 2;
+        this.objectSizeFactor = 30;
         this.runtime = 0;
     }
 
@@ -151,12 +160,6 @@ class AppParams {
         const generalFolder = this.tweakPane.addFolder({
             title: "General"
         });
-        const quadTreeFolder = this.tweakPane.addFolder({
-            title: "Quad tree"
-        });
-        const perfFolder = this.tweakPane.addFolder({
-            title: "Performance"
-        })
         generalFolder.addBinding(this, 'collisionDetectionStrategy', {
             label: "algorithm",
             options: {
@@ -169,6 +172,22 @@ class AppParams {
             step: 1,
             min: 1,
             max: 1500
+        });
+        generalFolder.addBinding(this, 'objectSizeFactor', {
+            label: "object size factor",
+            step: 1,
+            min: 1,
+            max: 50
+        });
+        generalFolder.addBinding(this, 'objectVelocityFactor', {
+            label: "object velocity factor",
+            step: 1,
+            min: 1,
+            max: 10
+        });
+
+        const quadTreeFolder = this.tweakPane.addFolder({
+            title: "Quad tree"
         });
         quadTreeFolder.addBinding(this, 'maxCapacity', {
             label: "max capacity",
@@ -186,6 +205,9 @@ class AppParams {
             label: "draw tree"
         });
 
+        const perfFolder = this.tweakPane.addFolder({
+            title: "Performance"
+        })
         perfFolder.addBinding(this, 'numberOfObjects', {
             readonly: true,
             label: "objects count",
@@ -198,7 +220,7 @@ class AppParams {
             label: "runtime (ms)",
             view: 'graph',
             min: 1,
-            max: 300
+            max: 200
         });
     }
 
