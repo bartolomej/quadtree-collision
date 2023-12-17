@@ -4,7 +4,8 @@ import {Rectangle} from "./rectangle.js"
 /**
  * @interface Object2D
  *
- * Represents any 2D object.
+ * Any 2D object that implements this interface could be used in this visualization.
+ * I initially wanted to add more examples of 2D shapes (e.g. rectangles) as a test, but ran out of time.
  */
 export class Object2D {
     /**

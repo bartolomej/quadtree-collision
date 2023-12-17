@@ -106,18 +106,20 @@ class App extends BaseApp {
         const {canvas} = this.ctx;
 
         for (const shape of this.objects) {
-            // TODO: Fix collision calculation to include object radius/size (maybe reuse Rectangle)
-            if (shape.position.x >= canvas.width || shape.position.x <= 0) {
+            if (!(shape instanceof Circle)) {
+                throw new Error("Circle is the only supported shape")
+            }
+            if (shape.position.x + shape.radius >= canvas.width || shape.position.x - shape.radius <= 0) {
                 shape.velocity = shape.velocity.mul(new Vector(-1, 1))
             }
-            if (shape.position.y >= canvas.height || shape.position.y <= 0) {
+            if (shape.position.y + shape.radius >= canvas.height || shape.position.y - shape.radius <= 0) {
                 shape.velocity = shape.velocity.mul(new Vector(1, -1))
             }
             shape.position = shape.position.add(shape.velocity);
 
             // Clamp positions to stay within bounds (otherwise quadtree collision detection may fail)
-            shape.position.x = Math.max(0, Math.min(shape.position.x, canvas.width));
-            shape.position.y = Math.max(0, Math.min(shape.position.y, canvas.height));
+            shape.position.x = Math.max(shape.radius, Math.min(shape.position.x, canvas.width - shape.radius));
+            shape.position.y = Math.max(shape.radius, Math.min(shape.position.y, canvas.height - shape.radius));
 
             // Reset the color to the default one
             shape.color = colors.GRAY;
