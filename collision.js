@@ -38,7 +38,7 @@ export class QuadtreeCollisionDetection {
         }
 
         for (const objectA of objects) {
-            const collisionCandidates = this.quadTree.lookupNeighbourElements(objectA);
+            const collisionCandidates = this.quadTree.getCollisionCandidates(objectA);
 
             for (const objectB of collisionCandidates) {
                 if (objectA !== objectB && objectA.collidesWith(objectB)) {

@@ -102,20 +102,36 @@ export class QuadTree {
             this.elements.push(element);
             this.subdivideIfReachedCapacity();
         } else {
-            const targetNode = this.findTargetChildOrThrow(element);
+            const targetNode = this.getBoundingChildOrThrow(element);
             targetNode.insert(element);
         }
     }
 
     /**
+     * Returns a set of collision candidates for a given element.
+     * Finds the minimum bounding box node and retrieves all descendant elements of that node.
      * @param element {Object2D}
      * @returns {Object2D[]}
      */
-    lookupNeighbourElements(element) {
+    getCollisionCandidates(element) {
+        const boundingChildNode = this.children.find(child => element.isWithinBounds(child.bounds));
+
+        if (boundingChildNode) {
+            return boundingChildNode.getCollisionCandidates(element);
+        } else {
+            return this.getDescendantElements();
+        }
+    }
+
+    /**
+     * Retrieve elements in all descendant nodes.
+     * @returns {Object2D[]}
+     */
+    getDescendantElements() {
         if (this.isLeafNode()) {
             return this.elements;
         } else {
-            return this.findTargetChildOrThrow(element).lookupNeighbourElements(element)
+            return this.children.map(child => child.getDescendantElements()).flat()
         }
     }
 
@@ -128,18 +144,20 @@ export class QuadTree {
             this.subdivide();
 
             for (const element of this.elements) {
-                const targetNode = this.findTargetChildOrThrow(element)
+                const targetNode = this.getBoundingChildOrThrow(element)
                 targetNode.insert(element);
             }
         }
     }
 
     /**
+     * Returns a child node that bounds the given element
+     * (the given element is contained within the child node).
      * @param element {Object2D}
      * @returns {QuadTree}
      */
-    findTargetChildOrThrow(element) {
-        const targetNode = this.children.find(node => this.isElementWithinBounds(element, node.bounds));
+    getBoundingChildOrThrow(element) {
+        const targetNode = this.children.find(node => this.isPositionedWithinBounds(element, node.bounds));
 
         if (!targetNode) {
             throw new Error(`Assertion: Target node not found for element (${JSON.stringify(element)})`)
@@ -153,7 +171,7 @@ export class QuadTree {
      * @param element {Object2D}
      * @param bounds {Rectangle}
      */
-    isElementWithinBounds(element, bounds) {
+    isPositionedWithinBounds(element, bounds) {
         return (
             bounds.x0 <= element.position.x &&
             bounds.x1 >= element.position.x &&

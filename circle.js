@@ -18,9 +18,6 @@ export class Circle {
         this.color = color;
     }
 
-    /**
-     * @param object {Object2D}
-     */
     collidesWith(object) {
         if (object instanceof Circle) {
             const combinedRadius = this.radius + object.radius;
@@ -42,4 +39,12 @@ export class Circle {
         ctx.stroke();
     }
 
+    isWithinBounds(bounds) {
+        return (
+            bounds.x0 <= this.position.x - this.radius &&
+            bounds.x1 >= this.position.x + this.radius &&
+            bounds.y0 <= this.position.y - this.radius &&
+            bounds.y1 >= this.position.y + this.radius
+        )
+    }
 }

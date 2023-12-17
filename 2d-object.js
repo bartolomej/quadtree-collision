@@ -1,4 +1,5 @@
 import {Vector} from "./vector.js"
+import {Rectangle} from "./rectangle.js"
 
 /**
  * @interface Object2D
@@ -23,6 +24,15 @@ export class Object2D {
      * @type {string}
      */
     color;
+
+    /**
+     * Returns true, if the object is contained within the rectangle bounds.
+     * @param bounds {Rectangle}
+     * @return {boolean}
+     */
+    isWithinBounds(bounds) {
+        throw new Error("Not implemented")
+    }
 
     /**
      * Check if collides with another 2D object.
