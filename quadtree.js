@@ -153,7 +153,7 @@ export class QuadTree {
      * @param element {Object2D}
      * @param bounds {Rectangle}
      */
-    isElementWithinBounds (element, bounds) {
+    isElementWithinBounds(element, bounds) {
         return (
             bounds.x0 <= element.position.x &&
             bounds.x1 >= element.position.x &&
